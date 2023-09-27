@@ -115,43 +115,6 @@
 		</div>
 	</div>
 
-	<!-- Modal -->
-	<div class="modal fade" id="modalEditProduk" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h1 class="modal-title fs-5" id="exampleModalLabel">Entry Produk</h1>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<form onsubmit="createProduct(event)" id="formData">
-					<div class="modal-body">
-						<div class="mb-3">
-							<label for="exampleFormControlInput1" class="form-label">Produk</label>
-							<input type="text" class="form-control" name="nama" id="exampleFormControlInput1">
-						</div>
-						<div class="mb-3">
-							<label for="exampleFormControlTextarea1" class="form-label">Keterangan</label>
-							<textarea class="form-control" id="exampleFormControlTextarea1" rows="3"
-								name="keterangan"></textarea>
-						</div>
-						<div class="mb-3">
-							<label for="exampleFormControlInput1" class="form-label">Harga</label>
-							<input type="number" class="form-control" name="harga" id="exampleFormControlInput1">
-						</div>
-						<div class="mb-3">
-							<label for="exampleFormControlInput1" class="form-label">Jumlah</label>
-							<input type="number" class="form-control" name="jumlah" id="exampleFormControlInput1">
-						</div>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-						<button type="submit" class="btn btn-primary">Save changes</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
@@ -171,10 +134,19 @@
 					row.append($('<td>').text(item.keterangan));
 					row.append($('<td>').text(item.harga));
 					row.append($('<td>').text(item.jumlah));
-					row.append(`<td>
-						<a href="#" onclick="setModal() class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</a> &nbsp;
-						<a href="#" class="btn btn-primary">Delete</a>
-					</td>`);
+					
+					const editButton = $('<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</button>');
+					const deleteButton = $('<button class="btn btn-primary">Delete</button>');
+
+					editButton.on('click', function() {
+						setModal(item);
+					});
+
+					deleteButton.on('click', function() {
+						deleteProduk(id);
+					});
+
+					row.append($('<td>').append(editButton).append(' &nbsp; ').append(deleteButton));
 
 					table.append(row);
 				});
@@ -183,34 +155,89 @@
 					console.error(error);
 				});
 		});
-		const setModal = () => {
-			console.log("anjayyyy");
+
+		const resetFormInputs = () => {
+			const form = document.getElementById('formData');
+			form.reset();
+		}
+
+		$('#exampleModal').on('hidden.bs.modal', function () {
+				resetFormInputs();
+		});
+
+
+		const setModal = (data) => {
+			const form = document.getElementById('formData');
+			form.onsubmit = () => editProduct(event, data.id)
+
+			const namaInput = form.querySelector('input[name="nama"]');
+			const keteranganTextarea = form.querySelector('textarea[name="keterangan"]');
+			const hargaInput = form.querySelector('input[name="harga"]');
+			const jumlahInput = form.querySelector('input[name="jumlah"]');
+
+			namaInput.value = data.nama;
+			keteranganTextarea.value = data.keterangan;
+			hargaInput.value = data.harga;
+			jumlahInput.value = data.jumlah;
+		}
+
+		const deleteProduk = (id) => {
+			try {
+				$.ajax({
+					type: 'DELETE',
+					url: 'http://localhost:3000/api/delete/'+ id, 
+					success: function (response) {						
+						location.reload();
+					},
+					error: function (error) {
+						console.error(error);
+					}
+				});
+			} catch (error) {
+				console.log(error)
+			}
+		}
+
+		const editProduct = (event, id) => {
+			try {
+				event.preventDefault(); 
+				const formData = $('#formData').serialize();
+				
+				$.ajax({
+					type: 'PUT',
+					url: 'http://localhost:3000/api/update/'+ id, 
+					data: formData,
+					success: function (response) {						
+						$('#formData')[0].reset();
+						$('#exampleModal').modal('hide');
+						location.reload();
+					},
+					error: function (error) {
+						console.error(error);
+					}
+				});
+			} catch (error) {
+				console.log(error)
+			}
 		}
 
 		const createProduct = (event) => {
 			try {
-				event.preventDefault(); // Prevent the default form submission
-
-				// Serialize the form data
+				event.preventDefault(); 
+				
 				const formData = $('#formData').serialize();
-				console.log(formData);
 
-				// Send a POST request to localhost:3000
 				$.ajax({
 					type: 'POST',
-					url: 'http://localhost:3000/api/create', // Replace with your server URL
+					url: 'http://localhost:3000/api/create', 
 					data: formData,
-					success: function (response) {
-						// Handle the server response here
+					success: function (response) {						
 						console.log(response);
-						// Clear form fields
 						$('#formData')[0].reset();
-
-						// Close the Bootstrap modal
 						$('#exampleModal').modal('hide');
+						location.reload();
 					},
 					error: function (error) {
-						// Handle any errors
 						console.error(error);
 					}
 				});

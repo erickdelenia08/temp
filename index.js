@@ -61,10 +61,10 @@ app.get('/api/read', (req, res) => {
 
 // Update a record
 app.put('/api/update/:id', (req, res) => {
-    const { name, email } = req.body;
+    const { nama, keterangan, harga, jumlah } = req.body;
     const { id } = req.params;
-    const sql = 'UPDATE users SET name=?, email=? WHERE id=?';
-    db.query(sql, [name, email, id], (err, result) => {
+    const sql = 'UPDATE produk SET nama=?, keterangan=?, harga=?, jumlah=? WHERE id=?';
+    db.query(sql, [nama, keterangan, harga, jumlah, id], (err, result) => {
         if (err) throw err;
         res.send('User updated successfully');
     });
@@ -73,7 +73,7 @@ app.put('/api/update/:id', (req, res) => {
 // Delete a record
 app.delete('/api/delete/:id', (req, res) => {
     const { id } = req.params;
-    const sql = 'DELETE FROM users WHERE id=?';
+    const sql = 'DELETE FROM produk WHERE id=?';
     db.query(sql, [id], (err, result) => {
         if (err) throw err;
         res.send('User deleted successfully');
